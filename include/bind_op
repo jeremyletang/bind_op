@@ -8,8 +8,6 @@
 
 #include <type_traits>
 #include <functional>
-#include <iostream>
-#include <list>
 
 #if __cplusplus >= 201402L
 # include <experimental/optional>
@@ -20,9 +18,9 @@
 namespace bind_op {
 
 #if __cplusplus >= 201402L
-namespace  _std = std::experimental;
+namespace  _std_opt = std::experimental;
 #elif __cplusplus >= 201701L
-namespace _std = std;
+namespace _std_opt = std;
 #endif
 
 namespace detail {
@@ -48,12 +46,12 @@ template <
     >
   >::value>
 >
-auto operator>>=(const _std::optional<T>& lhs, F f) -> decltype(auto) {
-  if (lhs == _std::nullopt) {
-    decltype(_std::make_optional(f(*lhs))) nul = _std::nullopt;
+auto operator>>=(const _std_opt::optional<T>& lhs, F f) -> decltype(auto) {
+  if (lhs == _std_opt::nullopt) {
+    decltype(_std_opt::make_optional(f(*lhs))) nul = _std_opt::nullopt;
     return nul;
   }
-  return _std::make_optional(f(*lhs));
+  return _std_opt::make_optional(f(*lhs));
 }
 
 template <
