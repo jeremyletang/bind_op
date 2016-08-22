@@ -26,7 +26,7 @@ int main() {
   auto opt_1 = std::make_optional(42);
   auto opt_2 = std::make_optional(21);
   auto opt_result = opt_1 >>= [&](const auto& x) {
-    return opt_2 >> [&](const auto& y) {
+    return opt_2 >>= [&](const auto& y) {
       return (y + x);
     };
   };
