@@ -16,7 +16,7 @@ a value, or return nullopt in the case it contains nothing.
 
 Enough speaking, here is a simple example (let's assume this is C++17):
 
-```
+```c++
 #include <bind_op>
 #include <cassert>
 #include <iostream>
