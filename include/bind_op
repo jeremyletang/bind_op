@@ -1,0 +1,73 @@
+// <bind_op> -*- C++ -*-
+// Copyright 2016 Jeremy Letang.
+// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
+// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// option. This file may not be copied, modified, or distributed
+// except according to those terms.
+
+#include <type_traits>
+#include <functional>
+#include <iostream>
+#include <list>
+
+#if __cplusplus >= 201402L
+# include <experimental/optional>
+#elif __cplusplus >= 201701L
+# include <optional>
+#endif
+
+namespace bind_op {
+
+#if __cplusplus >= 201402L
+namespace  _std = std::experimental;
+#elif __cplusplus >= 201701L
+namespace _std = std;
+#endif
+
+namespace detail {
+
+template<typename T>
+struct has_const_iterator {
+private:
+    template<typename C> static char test(typename C::const_iterator*);
+    template<typename C> static int  test(...);
+public:
+    enum { value = sizeof(test<T>(0)) == sizeof(char) };
+};
+
+} // detail
+
+template <
+  typename T,
+  typename F,
+  typename = std::enable_if_t<
+    std::is_convertible<
+      F,
+      std::function<decltype(std::declval<F>()((std::declval<T>())))(const T&)
+    >
+  >::value>
+>
+auto operator>>=(const _std::optional<T>& lhs, F f) -> decltype(auto) {
+  if (lhs == _std::nullopt) {
+    decltype(_std::make_optional(f(*lhs))) nul = _std::nullopt;
+    return nul;
+  }
+  return _std::make_optional(f(*lhs));
+}
+
+template <
+  template<typename Ty, typename... Args> class C,
+  typename T,
+  typename F,
+  typename = std::enable_if_t<detail::has_const_iterator<C<T>>::value>
+>
+auto operator>>=(const C<T>& lhs, F f) -> decltype(auto) {
+  C<decltype(f(std::declval<T>()))> out;
+  for (const auto& e: lhs) {
+    out.push_back(f(e));
+  }
+  return out;
+}
+
+} // bind_op
