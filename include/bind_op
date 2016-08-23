@@ -70,19 +70,27 @@ auto operator>>=(const _std_opt::optional<T>& lhs, F f) -> decltype(auto) {
 
 #endif // end of std::optional support
 
+// support for stl style container
+// these container should provide const_iterator
+// and value_type member
+// we use the constructor to initialize the container with the same size than
+// the input container
 template <
-  template<typename Ty, typename... Args> class C,
-  typename T,
+  template <typename...Args> class C,
   typename F,
-  typename = std::enable_if_t<detail::has_const_iterator<C<T>>::value>
+  typename... A,
+  typename = std::enable_if_t<detail::has_const_iterator<C<A...>>::value>
 >
-auto operator>>=(const C<T>& lhs, F f) -> decltype(auto) {
+auto operator>>=(const C<A...>& lhs, F f) -> decltype(auto) {
   // create the output container with the size of the input one
-  C<decltype(f(std::declval<T>()))> out(lhs.size());
+  C<decltype(f(std::declval<typename C<A...>::value_type>()))> out(lhs.size());
   std::transform(std::cbegin(lhs), std::cend(lhs), std::begin(out), f);
   return out;
 }
 
+// support for any kind of basic_string
+// need to be separate from the normal stl container because of the
+// reserved size constructor which take a size + a character to initialize the string
 template <
   typename CharT,
   typename Traits,
@@ -97,6 +105,9 @@ auto operator>>=(const std::basic_string<CharT, Traits, Allocator>& lhs, F f)
   return out;
 }
 
+// support for std::array
+// need to be specific too as we have to know at compile time the size of
+// the array from the type parameter of the input array
 template <
   typename T,
   typename F,
