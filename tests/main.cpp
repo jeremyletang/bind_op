@@ -8,6 +8,7 @@
 #include <bind_op>
 #include <iostream>
 #include <list>
+#include <array>
 
 #if __cplusplus >= 201402L
 # include <experimental/optional>
@@ -26,6 +27,7 @@ int main() {
   auto o2 = _std_opt::make_optional(5);
   auto l = std::list<int>{1,2,3,4,5,6,7};
   std::string s = "hello world";
+  auto a = std::array<int, 3>{{10,20,30}};
 
   auto i = (((o >>= [](const auto& i) {std::cout << 1 << std::endl; return i*2;})
               >>= [](const auto& i) { std::cout << 2 << std::endl; return i*10; })
@@ -35,12 +37,17 @@ int main() {
       return i*i2;
     };
   };
-  std::list<float> l2 = l >>= [](const auto& i) -> float { return static_cast<float>(i*2); };
+  std::list<float> l2 = l >>= [](const auto& i) { return static_cast<float>(i*2); };
   std::string s2 = s >>= [](const auto& c) -> char { return c + 1; };
+  auto a2 = a >>= [](const auto& i) { return i*10; };
 
   std::cout << *i << std::endl;
   std::cout << **i2 << std::endl;
   for (const auto& e: l2) {
+    std::cout << e << " ";
+  }
+  std::cout << std::endl;
+  for (const auto& e: a2) {
     std::cout << e << " ";
   }
   std::cout << std::endl;

@@ -8,6 +8,9 @@
 
 #include <type_traits>
 #include <functional>
+#include <algorithm>
+#include <string>
+#include <array>
 
 #if __cplusplus >= 201402L
 # include <experimental/optional>
@@ -61,10 +64,36 @@ template <
   typename = std::enable_if_t<detail::has_const_iterator<C<T>>::value>
 >
 auto operator>>=(const C<T>& lhs, F f) -> decltype(auto) {
-  C<decltype(f(std::declval<T>()))> out;
-  for (const auto& e: lhs) {
-    out.push_back(f(e));
-  }
+  // create the output container with the size of the input one
+  C<decltype(f(std::declval<T>()))> out(lhs.size());
+  std::transform(std::cbegin(lhs), std::cend(lhs), std::begin(out), f);
+  return out;
+}
+
+template <
+  typename CharT,
+  typename Traits,
+  typename Allocator,
+  typename F
+>
+auto operator>>=(const std::basic_string<CharT, Traits, Allocator>& lhs, F f)
+  -> decltype(auto) {
+  // create the output string with the size of the input one
+  std::basic_string<CharT, Traits, Allocator> out(lhs.size(), CharT{});
+  std::transform(std::cbegin(lhs), std::cend(lhs), std::begin(out), f);
+  return out;
+}
+
+template <
+  typename T,
+  typename F,
+  size_t N
+>
+auto operator>>=(const std::array<T, N>& lhs, F f)
+  -> decltype(auto) {
+  // create the output string with the size of the input one
+  std::array<decltype(f(std::declval<T>())), N> out;
+  std::transform(std::cbegin(lhs), std::cend(lhs), std::begin(out), f);
   return out;
 }
 
