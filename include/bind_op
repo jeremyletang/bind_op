@@ -12,16 +12,22 @@
 #include <string>
 #include <array>
 
+// Optional support is defined for C++14 in the experimental/optional header
 #if __cplusplus >= 201402L
 # include <experimental/optional>
+// with C++17 we just need to include optional
 #elif __cplusplus >= 201701L
 # include <optional>
 #endif
 
 namespace bind_op {
 
+// here we redefine the namespace from where is optional
+// if we use C++ younger than 2014 02, we may have the optional implemantation
+// inside std::experimental
 #if __cplusplus >= 201402L
 namespace  _std_opt = std::experimental;
+// if we use c++ after C++17, we must have optional support in std
 #elif __cplusplus >= 201701L
 namespace _std_opt = std;
 #endif
@@ -38,6 +44,11 @@ public:
 };
 
 } // detail
+
+// enable option support for the operator only if the version of C++
+// is superior at least at 201402, which sould include optional in
+// // std::experimental
+#if __cplusplus >= 201402L
 
 template <
   typename T,
@@ -56,6 +67,8 @@ auto operator>>=(const _std_opt::optional<T>& lhs, F f) -> decltype(auto) {
   }
   return _std_opt::make_optional(f(*lhs));
 }
+
+#endif // end of std::optional support
 
 template <
   template<typename Ty, typename... Args> class C,
